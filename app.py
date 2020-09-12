@@ -155,8 +155,11 @@ def get_chair_search():
         params.append(args.get("color"))
 
     if args.get("features"):
-        params.append(
-            f'({" AND ".join("FIND_IN_SET(%s, features)" for _ in args.get("features").split(","))})')
+        features = args.get("features").split(",")
+        conditions.append(
+            f'({" AND ".join("FIND_IN_SET(%s, features)" for _ in features)})'
+        )
+        params.extend(features)
 
     if len(conditions) == 0:
         raise BadRequest("Search condition not found")
@@ -266,9 +269,11 @@ def get_estate_search():
             params.append(rent["max"])
 
     if args.get("features"):
-        for feature_confition in args.get("features").split(","):
-            conditions.append("features LIKE CONCAT('%', %s, '%')")
-            params.append(feature_confition)
+        features = args.get("features").split(",")
+        conditions.append(
+            f'({" AND ".join("FIND_IN_SET(%s, features)" for _ in features)})'
+        )
+        params.extend(features)
 
     if len(conditions) == 0:
         raise BadRequest("Search condition not found")
