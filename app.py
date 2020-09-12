@@ -340,18 +340,19 @@ def post_estate_nazotte():
                 f"POLYGON(({','.join(['{} {}'.format(c['latitude'], c['longitude']) for c in coordinates])}))"
             )
             geom_text = f"POINT({estate['latitude']} {estate['longitude']})"
-            cur.execute(query, (estate["id"], polygon_text, geom_text))
+            cur.execute(
+                query, (estate["id"], polygon_text, geom_text))
             if len(cur.fetchall()) > 0:
                 estates_in_polygon.append(estate)
+                if len(estates_in_polygon) >= NAZOTTE_LIMIT:
+                    break
     finally:
         cnx.close()
 
-    results = {"estates": []}
-    for i, estate in enumerate(estates_in_polygon):
-        if i >= NAZOTTE_LIMIT:
-            break
-        results["estates"].append(camelize(estate))
-    results["count"] = len(results["estates"])
+    results = {
+        "estates": estates_in_polygon,
+        "count": len(estates_in_polygon)
+    }
     return results
 
 
