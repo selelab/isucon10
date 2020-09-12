@@ -9,6 +9,8 @@ import mysql.connector
 from sqlalchemy.pool import QueuePool
 from humps import camelize
 
+import constants
+
 LIMIT = 20
 NAZOTTE_LIMIT = 50
 
@@ -425,4 +427,4 @@ def post_estate():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=getenv("SERVER_PORT", 1323), debug=True, threaded=True)
+    app.run(host="0.0.0.0", port=getenv("SERVER_PORT", 1323), debug=constants.DEBUG, threaded=True)
