@@ -14,8 +14,10 @@ import constants
 LIMIT = 20
 NAZOTTE_LIMIT = 50
 
-chair_search_condition = json.load(open("../fixture/chair_condition.json", "r"))
-estate_search_condition = json.load(open("../fixture/estate_condition.json", "r"))
+chair_search_condition = json.load(
+    open("../fixture/chair_condition.json", "r"))
+estate_search_condition = json.load(
+    open("../fixture/estate_condition.json", "r"))
 
 app = flask.Flask(__name__)
 
@@ -27,7 +29,8 @@ mysql_connection_env = {
     "database": getenv("MYSQL_DBNAME", "isuumo"),
 }
 
-cnxpool = QueuePool(lambda: mysql.connector.connect(**mysql_connection_env), pool_size=10)
+cnxpool = QueuePool(lambda: mysql.connector.connect(
+    **mysql_connection_env), pool_size=10)
 
 
 def select_all(query, *args, dictionary=True):
@@ -68,13 +71,15 @@ def post_initialize():
 
 @app.route("/api/estate/low_priced", methods=["GET"])
 def get_estate_low_priced():
-    rows = select_all("SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT %s", (LIMIT,))
+    rows = select_all(
+        "SELECT id, address, name, rent, thumbnail FROM estate ORDER BY rent ASC, id ASC LIMIT %s", (LIMIT,))
     return {"estates": camelize(rows)}
 
 
 @app.route("/api/chair/low_priced", methods=["GET"])
 def get_chair_low_priced():
-    rows = select_all("SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT %s", (LIMIT,))
+    rows = select_all(
+        "SELECT id, name, price, thumbnail FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT %s", (LIMIT,))
     return {"chairs": camelize(rows)}
 
 
@@ -150,9 +155,8 @@ def get_chair_search():
         params.append(args.get("color"))
 
     if args.get("features"):
-        for feature_confition in args.get("features").split(","):
-            conditions.append("features LIKE CONCAT('%', %s, '%')")
-            params.append(feature_confition)
+        params.append(
+            f'({" AND ".join("FIND_IN_SET(%s, features)" for _ in args.get("features").split(","))})')
 
     if len(conditions) == 0:
         raise BadRequest("Search condition not found")
@@ -171,7 +175,7 @@ def get_chair_search():
 
     search_condition = " AND ".join(conditions)
 
-    query = f"SELECT * FROM chair WHERE {search_condition} ORDER BY popularity DESC, id ASC LIMIT %s OFFSET %s"
+    query = f"SELECT id, name, description, price, thumbnail FROM chair WHERE {search_condition} ORDER BY popularity DESC, id ASC LIMIT %s OFFSET %s"
     chairs = select_all(query, params + [per_page, per_page * page])
 
     return {"count": len(chairs), "chairs": camelize(chairs)}
@@ -196,11 +200,13 @@ def post_chair_buy(chair_id):
     try:
         cnx.start_transaction()
         cur = cnx.cursor(dictionary=True)
-        cur.execute("SELECT * FROM chair WHERE id = %s AND stock > 0 FOR UPDATE", (chair_id,))
+        cur.execute(
+            "SELECT * FROM chair WHERE id = %s AND stock > 0 FOR UPDATE", (chair_id,))
         chair = cur.fetchone()
         if chair is None:
             raise NotFound()
-        cur.execute("UPDATE chair SET stock = stock - 1 WHERE id = %s", (chair_id,))
+        cur.execute(
+            "UPDATE chair SET stock = stock - 1 WHERE id = %s", (chair_id,))
         cnx.commit()
         return {"ok": True}
     except Exception as e:
@@ -279,7 +285,7 @@ def get_estate_search():
 
     search_condition = " AND ".join(conditions)
 
-    query = f"SELECT * FROM estate WHERE {search_condition} ORDER BY popularity DESC, id ASC LIMIT %s OFFSET %s"
+    query = f"SELECT id, address, name, description, rent, thumbnail FROM estate WHERE {search_condition} ORDER BY popularity DESC, id ASC LIMIT %s OFFSET %s"
     chairs = select_all(query, params + [per_page, per_page * page])
 
     return {"count": len(chairs), "estates": camelize(chairs)}
@@ -292,7 +298,7 @@ def get_estate_search_condition():
 
 @app.route("/api/estate/req_doc/<int:estate_id>", methods=["POST"])
 def post_estate_req_doc(estate_id):
-    estate = select_row("SELECT * FROM estate WHERE id = %s", (estate_id,))
+    estate = select_row("SELECT 1 FROM estate WHERE id = %s", (estate_id,))
     if estate is None:
         raise NotFound()
     return {"ok": True}
@@ -331,7 +337,7 @@ def post_estate_nazotte():
         estates = cur.fetchall()
         estates_in_polygon = []
         for estate in estates:
-            query = "SELECT * FROM estate WHERE id = %s AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))"
+            query = "SELECT 1 FROM estate WHERE id = %s AND ST_Contains(ST_PolygonFromText(%s), ST_GeomFromText(%s))"
             polygon_text = (
                 f"POLYGON(({','.join(['{} {}'.format(c['latitude'], c['longitude']) for c in coordinates])}))"
             )
@@ -364,7 +370,8 @@ def get_estate(estate_id):
 def get_recommended_estate(chair_id):
     chair = select_row("SELECT * FROM chair WHERE id = %s", (chair_id,))
     if chair is None:
-        raise BadRequest(f"Invalid format searchRecommendedEstateWithChair id : {chair_id}")
+        raise BadRequest(
+            f"Invalid format searchRecommendedEstateWithChair id : {chair_id}")
     w, h, d = chair["width"], chair["height"], chair["depth"]
     query = (
         "SELECT * FROM estate"
@@ -385,7 +392,8 @@ def get_recommended_estate(chair_id):
 def post_chair():
     if "chairs" not in flask.request.files:
         raise BadRequest()
-    records = csv.reader(StringIO(flask.request.files["chairs"].read().decode()))
+    records = csv.reader(
+        StringIO(flask.request.files["chairs"].read().decode()))
     cnx = cnxpool.connect()
     try:
         cnx.start_transaction()
@@ -424,4 +432,5 @@ def post_estate():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=getenv("SERVER_PORT", 1323), debug=constants.DEBUG, threaded=True)
+    app.run(host="0.0.0.0", port=getenv("SERVER_PORT", 1323),
+            debug=constants.DEBUG, threaded=True)
