@@ -72,14 +72,14 @@ def post_initialize():
 @app.route("/api/estate/low_priced", methods=["GET"])
 def get_estate_low_priced():
     rows = select_all(
-        "SELECT id, address, name, rent, thumbnail FROM estate ORDER BY rent ASC, id ASC LIMIT %s", (LIMIT,))
+        "SELECT * FROM estate ORDER BY rent ASC, id ASC LIMIT %s", (LIMIT,))
     return {"estates": camelize(rows)}
 
 
 @app.route("/api/chair/low_priced", methods=["GET"])
 def get_chair_low_priced():
     rows = select_all(
-        "SELECT id, name, price, thumbnail FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT %s", (LIMIT,))
+        "SELECT * FROM chair WHERE stock > 0 ORDER BY price ASC, id ASC LIMIT %s", (LIMIT,))
     return {"chairs": camelize(rows)}
 
 
@@ -178,7 +178,7 @@ def get_chair_search():
 
     search_condition = " AND ".join(conditions)
 
-    query = f"SELECT id, name, description, price, thumbnail FROM chair WHERE {search_condition} ORDER BY popularity DESC, id ASC LIMIT %s OFFSET %s"
+    query = f"SELECT * FROM chair WHERE {search_condition} ORDER BY popularity DESC, id ASC LIMIT %s OFFSET %s"
     chairs = select_all(query, params + [per_page, per_page * page])
 
     return {"count": len(chairs), "chairs": camelize(chairs)}
@@ -290,7 +290,7 @@ def get_estate_search():
 
     search_condition = " AND ".join(conditions)
 
-    query = f"SELECT id, address, name, description, rent, thumbnail FROM estate WHERE {search_condition} ORDER BY popularity DESC, id ASC LIMIT %s OFFSET %s"
+    query = f"SELECT * FROM estate WHERE {search_condition} ORDER BY popularity DESC, id ASC LIMIT %s OFFSET %s"
     chairs = select_all(query, params + [per_page, per_page * page])
 
     return {"count": len(chairs), "estates": camelize(chairs)}
@@ -379,7 +379,7 @@ def get_recommended_estate(chair_id):
             f"Invalid format searchRecommendedEstateWithChair id : {chair_id}")
     w, h, d = chair["width"], chair["height"], chair["depth"]
     query = (
-        "SELECT * FROM estate"
+        "SELECT *"
         " WHERE (door_width >= %s AND door_height >= %s)"
         "    OR (door_width >= %s AND door_height >= %s)"
         "    OR (door_width >= %s AND door_height >= %s)"
