@@ -402,9 +402,7 @@ def post_chair():
     try:
         cnx.start_transaction()
         cur = cnx.cursor()
-        values = []
-        for record in records:
-            values.append(f"({','.join(record)})")
+        values = [f"({','.join(record)})" for record in records]
         query = f"INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock)\
                 VALUES {','.join(values)}"
         cur.execute(query)
@@ -427,9 +425,7 @@ def post_estate():
     try:
         cnx.start_transaction()
         cur = cnx.cursor()
-        values = []
-        for record in records:
-            values.append(f"({','.join(record)})")
+        values = [f"({','.join(record)})" for record in records]
         query = f"INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity)\
                 VALUES {','.join(values)}"
         cur.execute(query)
