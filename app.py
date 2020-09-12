@@ -357,7 +357,7 @@ def post_estate_nazotte():
         cnx.close()
 
     results = {
-        "estates": estates_in_polygon,
+        "estates": camelize(estates_in_polygon),
         "count": len(estates_in_polygon)
     }
     return results
@@ -378,7 +378,8 @@ def get_recommended_estate(chair_id):
         raise BadRequest(
             f"Invalid format searchRecommendedEstateWithChair id : {chair_id}")
 
-    min_len, sec_min_len = sorted([chair["width"], chair["height"], chair["depth"]])[:2]
+    min_len, sec_min_len = sorted(
+        [chair["width"], chair["height"], chair["depth"]])[:2]
 
     query = (
         "SELECT *"
@@ -388,7 +389,8 @@ def get_recommended_estate(chair_id):
         " ORDER BY popularity DESC, id ASC"
         " LIMIT %s"
     )
-    estates = select_all(query, (min_len, sec_min_len, sec_min_len, min_len, LIMIT))
+    estates = select_all(query, (min_len, sec_min_len,
+                                 sec_min_len, min_len, LIMIT))
     return {"estates": camelize(estates)}
 
 
