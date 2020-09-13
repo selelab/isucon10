@@ -1,0 +1,42 @@
+version: "3"
+
+services:
+  server:
+    build:
+      context: isuumo/webserver
+    environment:
+      NGINX_PORT: 80
+    ports:
+      - 4080:80
+    volumes:
+      - ./isuumo/webserver/public:/www/data
+  api:
+    build:
+      context: isuumo/webapp/python
+    environment:
+      DB_HOST: ${DB_HOST}
+      DB_NAME: ${DB_NAME}
+      DB_PASS: ${DB_PASS}
+      DB_PORT: ${DB_PORT}
+      DB_USER: ${DB_USER}
+      DEBUG: ${DEBUG}
+    volumes:
+      - ./isuumo/webapp/python:/app/python
+      - ./isuumo/webapp/fixture:/app/fixture
+      - ./isuumo/webapp/mysql:/app/mysql
+  db:
+    image: mysql
+    hostname: ${DB_HOST}
+    environment:
+      MYSQL_ROOT_PASSWORD: mysql
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_PASSWORD: ${DB_PASS}
+      MYSQL_PORT: ${DB_PORT}
+      MYSQL_USER: ${DB_USER}
+    volumes:
+      - ./isuumo/webapp/mysql/conf.d:/etc/mysql/conf.d
+      - mysql-data:/var/lib/mysql
+
+volumes:
+  mysql-data:
+    driver: local

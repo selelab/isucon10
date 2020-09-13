@@ -22,11 +22,11 @@ estate_search_condition = json.load(
 app = flask.Flask(__name__)
 
 mysql_connection_env = {
-    "host": getenv("MYSQL_HOST", "127.0.0.1"),
-    "port": getenv("MYSQL_PORT", 3306),
-    "user": getenv("MYSQL_USER", "isucon"),
-    "password": getenv("MYSQL_PASS", "isucon"),
-    "database": getenv("MYSQL_DBNAME", "isuumo"),
+    "host": getenv("DB_HOST", "127.0.0.1"),
+    "port": getenv("DB_PORT", 3306),
+    "user": getenv("DB_USER", "isucon"),
+    "password": getenv("DB_PASS", "isucon"),
+    "database": getenv("DB_NAME", "isuumo"),
 }
 
 cnxpool = QueuePool(lambda: mysql.connector.connect(
@@ -53,7 +53,7 @@ def get_hoge():
     return "Hogehoge!"
 
 
-@app.route("/initialize", methods=["POST"])
+@app.route("/initialize", methods=["POST", "GET"])
 def post_initialize():
     sql_dir = "../mysql/db"
     sql_files = [
